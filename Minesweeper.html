@@ -1,0 +1,238 @@
+<!--Minesweeper-->
+<!doctype html>
+<html lang="en">
+  <head>
+    <title>Minesweeper</title>
+  </head>
+  <body>
+	<h1 style="text-align: center">Minesweeper</h1>
+	<div align="center" id="buttonsLevels">
+		<button onclick="createBeginnerLevelMatrix()">Beginner</button>
+		<button onclick="createIntermediateLevelMatrix()">Intermediate</button>
+		<button onclick="createExpertLevelMatrix()">Expert</button>
+	</div>
+</html>
+<script>
+	alert("Choose your level!");
+
+	var cellsWithoutBombs = 0;
+	function createBeginnerLevelMatrix() {
+		cellsWithoutBombs = 10 * 10 - 10;
+		// matrix 10 x 10 and 10 bombs
+		displayCells(10, 10);
+		// set the positions of bombs
+		setPosBombs(10);
+		// create the array with the values and the bombs
+		createArrayValuesBombs(10, 10);
+		alert("Be careful, you have 10 bombs to avoid!");
+	}
+
+	function createIntermediateLevelMatrix() {
+		cellsWithoutBombs = 16 * 16 - 40;
+		// matrix 16 x 16 and 40 bombs
+		displayCells(16, 16);
+		// set the positions of bombs
+		setPosBombs(40);
+		// create the array with the values and the bombs
+		createArrayValuesBombs(16, 16);
+		alert("Be careful, you have 40 bombs to avoid!");
+	}
+
+	function createExpertLevelMatrix() {
+		cellsWithoutBombs = 16 * 30 - 99;
+		// matrix 16 x 30 and 99 bombs
+		displayCells(16, 30);
+		// set the positions of bombs
+		setPosBombs(99);
+		// create the array with the values and the bombs
+		createArrayValuesBombs(16, 30);
+		alert("Be careful, you have 99 bombs to avoid!");
+	}
+
+	function addLineBreak(){
+		let newLine = document.createElement("br");
+		buttonsLevels.append(newLine);
+	}
+
+	var idCells = [];
+	function displayCells(lines, columns) {
+		addLineBreak();
+		addLineBreak();
+		let pos = 0;
+		for (let i = 1; i <= lines; ++i) {
+			for (let j = 1; j <= columns; ++j) {
+				let cell = document.createElement("button");
+				buttonsLevels.append(cell);
+				cell.id = ++pos;
+				cell.style.height = "20px";
+				cell.style.width = "20px";
+				cell.setAttribute("onclick","clickButton(this.id)");
+				idCells.push(pos);
+			}
+			addLineBreak();
+		}
+	}
+
+	var bombs = [];
+	function setPosBombs(numberBombs) {
+		for (let i = 1; i <= numberBombs; ++i) {
+			let random = Math.floor(Math.random() * idCells.length);
+			let existElem = false;
+			bombs.forEach(function(element) {
+				if (element == idCells[random]) {
+					existElem = true;
+				}
+			})
+			if (existElem == false) {
+				bombs.push(idCells[random]);
+			} else {
+				--i;
+			}
+		}
+	}
+
+	var valuesCells = [];
+	var posAroundBomb = [];
+	function createArrayValuesBombs(lines, columns) {
+		valuesCells = Array(lines * columns + 1).fill(0);
+		bombs.forEach(function(element, index) {
+			valuesCells[element] = 'B';
+			switch (posBomb(element, lines, columns)) {
+				case 1: // case when the bomb is in the left up corner
+					neighboursLeftUpCorner(element, columns);
+					break;
+				case 2: // case when the bomb is in the right up corner
+					neighboursRightUpCorner(element, columns);
+					break;
+				case 3: // case when the bomb is in the left down corner
+					neighboursLeftDownCorner(element, columns);
+					break;
+				case 4: // case when the bomb is in the right down corner
+					neighboursRightDownCorner(element, columns);
+					break;
+				case 5: // case when the bomb is in the first line
+					neighboursFirstLine(element, columns);
+					break;
+				case 6: // case when the bomb is in the last line
+					neighboursLastLine(element, columns);
+					break;
+				case 7: // case when the bomb is in the first column
+					neighboursFirstColumn(element, columns);
+					break;
+				case 8: // case when the bomb is in the last column
+					neighboursLastColumn(element, columns);
+					break;
+				case 9: // case when the bomb is in the middle
+					neighboursMiddle(element, columns);
+					break;
+			}
+			posAroundBomb.forEach(function(element, index) {
+				if (valuesCells[element] != 'B') {
+					++valuesCells[element];
+				}
+			})
+		})
+	}
+
+	function posBomb(element, lines, columns) {
+		if (element == 1) { // case when the bomb is in the left up corner
+			return 1;
+		} else if (element / columns == 1 && element % lines == 0) { // case when the bomb is in the right up corner
+			return 2;
+		} else if (element == (lines * columns) - columns + 1) { // case when the bomb is in the left down corner
+			return 3;
+		} else if (element ==  lines * columns) { // case when the bomb is in the right down corner
+			return 4;
+		} else if (2 <= element && element <= columns - 1) { // case when the bomb is in the first line
+			return 5;
+		} else if ((lines * columns) - columns + 2 <= element && element <= (lines * columns) - 1) { // case when the bomb is in the last line
+			return 6;
+		} else if (element % columns == 1) { // case when the bomb is in the first column
+			return 7;
+		} else if (element % columns == 0) { // case when the bomb is in the last column
+			return 8;
+		} else { // case when the bomb is in the middle
+			return 9;
+		}
+	}
+
+	function neighboursLeftUpCorner(element, columns) {
+		posAroundBomb = [element + 1,
+						element + columns, element + columns + 1];
+	}
+
+	function neighboursRightUpCorner(element, columns) {
+		posAroundBomb = [element - 1,
+						element + columns - 1, element + columns];
+	}
+
+	function neighboursLeftDownCorner(element, columns) {
+		posAroundBomb = [element - columns, element - columns + 1,
+						element + 1];
+	}
+
+	function neighboursRightDownCorner(element, columns) {
+		posAroundBomb = [element - columns - 1, element - columns,
+						element - 1];
+	}
+
+	function neighboursFirstLine(element, columns) {
+		posAroundBomb = [element - 1, element + 1,
+						element + columns - 1, element + columns, element + columns + 1];
+	}
+
+	function neighboursLastLine(element, columns) {
+		posAroundBomb = [element - columns - 1, element - columns, element - columns + 1,
+						element - 1, element + 1];
+	}
+
+	function neighboursFirstColumn(element, columns) {
+		posAroundBomb = [element - columns, element - columns + 1,
+						element + 1,
+						element + columns, element + columns + 1];
+	}
+
+	function neighboursLastColumn(element, columns) {
+		posAroundBomb = [element - columns - 1, element - columns,
+						element - 1,
+						element + columns - 1, element + columns];
+	}
+
+	function neighboursMiddle(element, columns) {
+		posAroundBomb = [element - columns - 1, element - columns, element - columns + 1,
+						element - 1, element + 1,
+						element + columns - 1, element + columns, element + columns + 1];
+	}
+
+	function clickButton(clicked_id) {
+		--cellsWithoutBombs;
+		let posButton = document.getElementById(clicked_id);
+		posButton.textContent = valuesCells[clicked_id];
+		if (posButton.textContent == 'B') {
+			posButton.style.backgroundColor = 'red';
+			bombs.forEach(function(element){
+				let bombButton = document.getElementById(element);
+				bombButton.textContent = 'B';
+				bombButton.style.backgroundColor = 'red';
+			})
+			newGame();
+			alert("Unfortunately, you lost! You can try again :)")
+		} else if (cellsWithoutBombs == 0) {
+			alert("You WON! You've done a great job :)");
+			bombs.forEach(function(element){
+				let bombButton = document.getElementById(element);
+				bombButton.textContent = 'B';
+				bombButton.style.backgroundColor = 'red';
+			})
+		}
+	}
+	
+	function newGame(){
+		addLineBreak();
+		addLineBreak();
+		let buttonNewGame = document.createElement("button");
+		buttonsLevels.append(buttonNewGame);
+		buttonNewGame.textContent = "New Game";
+		buttonNewGame.setAttribute("onclick","window.location.reload()");
+	}
+</script>
